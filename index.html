@@ -1,94 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Happy New Year 🎆</title>
-
-<style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
-  }
-  canvas {
-    display: block;
-  }
-</style>
-</head>
-
-<body>
-<canvas id="c"></canvas>
-
-<script>
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
-
-canvas.width = innerWidth;
-canvas.height = innerHeight;
-
-window.onresize = () => {
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-};
-
-const particles = [];
-const text = "HAPPY NEW YEAR";
-
-ctx.font = "bold 90px Arial";
-ctx.fillStyle = "white";
-ctx.textAlign = "center";
-ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-
-const textData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-for (let y = 0; y < canvas.height; y += 6) {
-  for (let x = 0; x < canvas.width; x += 6) {
-    const i = (y * canvas.width + x) * 4;
-    if (textData[i + 3] > 128) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: canvas.height + Math.random() * 200,
-        tx: x,
-        ty: y,
-        vx: 0,
-        vy: 0
-      });
-    }
-  }
-}
-
-function animate() {
-  ctx.fillStyle = "rgba(0,0,0,0.15)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  particles.forEach(p => {
-    const dx = p.tx - p.x;
-    const dy = p.ty - p.y;
-
-    p.vx += dx * 0.01;
-    p.vy += dy * 0.01;
-
-    p.vx *= 0.85;
-    p.vy *= 0.85;
-
-    p.x += p.vx;
-    p.y += p.vy;
-
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  requestAnimationFrame(animate);
-}
-animate();
-</script>
-
-</body>
-</html>
-sa<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -188,5 +98,218 @@ function animate(time) {
 animate(0);
 </script>
 
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 | Smooth 3D Experience</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 2000px;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Smooth 3D Container */
+        .scene {
+            width: 400px;
+            height: 550px;
+            z-index: 10;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.6);
+            cursor: pointer;
+            will-change: transform; /* Performance boost */
+        }
+
+        .year {
+            font-size: 9rem;
+            font-weight: 900;
+            margin: 0;
+            color: #fff;
+            transform: translateZ(120px);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            background: linear-gradient(to bottom, #fff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .label {
+            font-size: 1.5rem;
+            color: #ffd700;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            transform: translateZ(60px);
+            margin-top: -10px;
+        }
+
+        .glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--x) var(--y), rgba(255,215,0,0.15), transparent 60%);
+            border-radius: 30px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="fwCanvas"></canvas>
+
+<div class="scene">
+    <div class="card" id="card">
+        <div class="glow" id="glow"></div>
+        <h1 class="year">2026</h1>
+        <p class="label">New Year</p>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('fwCanvas');
+    const ctx = canvas.getContext('2d');
+    const card = document.getElementById('card');
+    const glow = document.getElementById('glow');
+    
+    let particles = [];
+    let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Firework Logic
+    class Particle {
+        constructor(x, y, color, velocity) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.velocity = velocity;
+            this.alpha = 1;
+            this.friction = 0.97;
+        }
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.fill();
+            ctx.restore();
+        }
+        update() {
+            this.velocity.x *= this.friction;
+            this.velocity.y *= this.friction;
+            this.y += 0.05; // gravity
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+            this.alpha -= 0.008;
+        }
+    }
+
+    function spawnFirework(x, y, count = 80) {
+        const h = Math.random() * 360;
+        const color = `hsl(${h}, 100%, 60%)`;
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2) / count * i;
+            const speed = Math.random() * 10 + 2;
+            particles.push(new Particle(x, y, color, {
+                x: Math.cos(angle) * speed,
+                y: Math.sin(angle) * speed
+            }));
+        }
+    }
+
+    // Animation Loop
+    function animate() {
+        // Smooth Interpolation (Lerp) for the card
+        mouse.x += (mouse.targetX - mouse.x) * 0.1;
+        mouse.y += (mouse.targetY - mouse.y) * 0.1;
+        
+        card.style.transform = `rotateX(${-mouse.y}deg) rotateY(${mouse.x}deg)`;
+
+        ctx.fillStyle = 'rgba(9, 10, 15, 0.15)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((p, i) => {
+            if (p.alpha > 0) {
+                p.update();
+                p.draw();
+            } else {
+                particles.splice(i, 1);
+            }
+        });
+        requestAnimationFrame(animate);
+    }
+
+    // Interactions
+    window.addEventListener('mousemove', (e) => {
+        // Card Tilt Calc
+        mouse.targetX = (e.clientX - window.innerWidth / 2) / 20;
+        mouse.targetY = (e.clientY - window.innerHeight / 2) / 20;
+        
+        // Dynamic Glow
+        const rect = card.getBoundingClientRect();
+        glow.style.setProperty('--x', `${e.clientX - rect.left}px`);
+        glow.style.setProperty('--y', `${e.clientY - rect.top}px`);
+    });
+
+    card.addEventListener('click', (e) => {
+        spawnFirework(e.clientX, e.clientY, 120); // Massive burst
+    });
+
+    // Instant Start
+    animate();
+    setTimeout(() => {
+        spawnFirework(window.innerWidth / 2, window.innerHeight * 0.3, 150);
+        spawnFirework(window.innerWidth * 0.2, window.innerHeight * 0.5, 100);
+        spawnFirework(window.innerWidth * 0.8, window.innerHeight * 0.5, 100);
+    }, 500);
+
+    // Occasional Background Fireworks
+    setInterval(() => {
+        spawnFirework(Math.random() * canvas.width, Math.random() * canvas.height * 0.6, 50);
+    }, 1500);
+
+</script>
 </body>
 </html>

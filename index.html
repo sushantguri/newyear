@@ -100,7 +100,7 @@ animate(0);
 
 </body>
 </html> -->
-
+<!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -310,6 +310,618 @@ animate(0);
         spawnFirework(Math.random() * canvas.width, Math.random() * canvas.height * 0.6, 50);
     }, 1500);
 
+</script>
+</body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 | Responsive 3D</title>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1500px;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Responsive Scene Container */
+        .scene {
+            position: relative;
+            z-index: 10;
+            width: 90vw;
+            max-width: 450px;
+            height: 60vh;
+            max-height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            background: var(--glass);
+            border: 1.5px solid rgba(255, 215, 0, 0.3);
+            border-radius: 2rem;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: pointer;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Scaling Text */
+        .year {
+            font-size: clamp(5rem, 20vw, 9rem); /* Smooth scaling from mobile to desktop */
+            font-weight: 900;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, var(--gold), #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transform: translateZ(100px);
+            filter: drop-shadow(0 15px 20px rgba(0,0,0,0.6));
+            line-height: 1;
+        }
+
+        .text {
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            color: var(--gold);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            transform: translateZ(50px);
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 30px;
+            font-size: 0.7rem;
+            color: white;
+            opacity: 0.5;
+            transform: translateZ(30px);
+            letter-spacing: 1px;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-height: 500px) {
+            .scene { height: 80vh; }
+            .year { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="fw"></canvas>
+
+    <div class="scene">
+        <div class="card" id="card">
+            <h1 class="year">2026</h1>
+            <p class="text">Happy New Year</p>
+            <div class="instruction">TAP OR MOVE MOUSE</div>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('fw');
+    const ctx = canvas.getContext('2d');
+    const card = document.getElementById('card');
+    let particles = [];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            // Smaller particles for mobile performance
+            this.radius = Math.random() * 1.5 + 0.5;
+            this.vel = {
+                x: (Math.random() - 0.5) * 10,
+                y: (Math.random() - 0.5) * 10
+            };
+            this.alpha = 1;
+            this.decay = Math.random() * 0.015 + 0.005;
+        }
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.restore();
+        }
+        update() {
+            this.vel.y += 0.1; // gravity
+            this.x += this.vel.x;
+            this.y += this.vel.y;
+            this.alpha -= this.decay;
+        }
+    }
+
+    function createFirework(x, y) {
+        const count = window.innerWidth < 600 ? 40 : 80; // Fewer particles on mobile
+        const hue = Math.random() * 360;
+        for (let i = 0; i < count; i++) {
+            particles.push(new Particle(x, y, `hsl(${hue}, 100%, 60%)`));
+        }
+    }
+
+    function animate() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            if (p.alpha > 0) {
+                p.update(); p.draw();
+            } else {
+                particles.splice(i, 1);
+            }
+        });
+        requestAnimationFrame(animate);
+    }
+
+    // --- RESPONSIVE INPUT LOGIC ---
+
+    // Desktop Mouse Move
+    document.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.pageX) / 15;
+        const y = (window.innerHeight / 2 - e.pageY) / 15;
+        card.style.transform = `rotateX(${y}deg) rotateY(${-x}deg)`;
+    });
+
+    // Mobile Gyroscope/Touch (Simulated Tilt on Touch)
+    document.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const x = (window.innerWidth / 2 - touch.pageX) / 10;
+        const y = (window.innerHeight / 2 - touch.pageY) / 10;
+        card.style.transform = `rotateX(${y}deg) rotateY(${-x}deg)`;
+    }, {passive: true});
+
+    // Click/Tap Interaction
+    const handleAction = (e) => {
+        const clientX = e.clientX || e.touches[0].clientX;
+        const clientY = e.clientY || e.touches[0].clientY;
+        // Multiple fireworks at once
+        for(let i=0; i<4; i++) {
+            setTimeout(() => {
+                createFirework(
+                    clientX + (Math.random() - 0.5) * 100,
+                    clientY + (Math.random() - 0.5) * 100
+                );
+            }, i * 100);
+        }
+    };
+
+    card.addEventListener('mousedown', handleAction);
+    card.addEventListener('touchstart', (e) => {
+        handleAction(e);
+        e.preventDefault(); 
+    }, {passive: false});
+
+    // Auto-Background Fireworks
+    setInterval(() => {
+        createFirework(Math.random() * canvas.width, Math.random() * canvas.height * 0.7);
+    }, 1200);
+
+    animate();
+</script>
+</body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 | Neon 3D Experience</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1500px;
+        }
+
+        canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* The 3D Card */
+        .card {
+            position: relative;
+            z-index: 10;
+            width: 380px;
+            height: 500px;
+            background: rgba(15, 15, 15, 0.9);
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            overflow: hidden; /* Clips the rotating lines */
+            transition: transform 0.15s ease-out;
+            animation: breathe 5s ease-in-out infinite;
+        }
+
+        /* Rotating Corner Lines (The Neon Border) */
+        .card::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            background: conic-gradient(transparent, transparent, transparent, #ffd700);
+            animation: rotateLine 4s linear infinite;
+        }
+
+        /* Inner card to hide the center of the rotating gradient */
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 4px; /* Thickness of the border */
+            background: #0f0f0f;
+            border-radius: 26px;
+            z-index: 0;
+        }
+
+        /* Centered Content Styling */
+        .content {
+            position: relative;
+            z-index: 2; /* Sits above the inner background */
+            text-align: center;
+            transform-style: preserve-3d;
+        }
+
+        .year {
+            font-size: 8rem; /* Original Size */
+            font-family: 'Arial Black', sans-serif;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transform: translateZ(100px);
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5));
+            line-height: 1;
+        }
+
+        .text {
+            font-size: 1.5rem; /* Original Size */
+            font-family: 'Arial Black', sans-serif;
+            color: #ffd700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            transform: translateZ(50px);
+            margin: 10px 0 0 0;
+            text-align: center;
+        }
+
+        /* Animations */
+        @keyframes rotateLine {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 30px 60px rgba(255, 215, 0, 0.1); }
+            50% { box-shadow: 0 30px 80px rgba(255, 215, 0, 0.3); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="fw"></canvas>
+
+    <div class="card" id="card">
+        <div class="content">
+            <h1 class="year">2026</h1>
+            <p class="text">Happy New Year</p>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('fw');
+    const ctx = canvas.getContext('2d');
+    const card = document.getElementById('card');
+    let particles = [];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // 3D Tilt Logic
+    window.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.pageX) / 20;
+        const y = (window.innerHeight / 2 - e.pageY) / 20;
+        card.style.transform = `rotateX(${y}deg) rotateY(${-x}deg)`;
+    });
+
+    // Firework System
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.vel = { x: (Math.random() - 0.5) * 10, y: (Math.random() - 0.5) * 10 };
+            this.alpha = 1;
+        }
+        update() {
+            this.x += this.vel.x; this.y += this.vel.y;
+            this.vel.y += 0.1; // gravity
+            this.alpha -= 0.01;
+        }
+        draw() {
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function spawn(x, y) {
+        const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+        for(let i=0; i<60; i++) particles.push(new Particle(x, y, color));
+    }
+
+    function animate() {
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            if(p.alpha > 0) { p.update(); p.draw(); }
+            else { particles.splice(i, 1); }
+        });
+        requestAnimationFrame(animate);
+    }
+
+    // Interactions
+    card.addEventListener('click', (e) => {
+        for(let i=0; i<8; i++) {
+            setTimeout(() => spawn(Math.random()*canvas.width, Math.random()*canvas.height), i*150);
+        }
+    });
+
+    setInterval(() => spawn(Math.random()*canvas.width, Math.random()*canvas.height*0.7), 1500);
+    animate();
+</script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 | Neon 3D Experience</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1500px;
+        }
+
+        canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* The 3D Card */
+        .card {
+            position: relative;
+            z-index: 10;
+            width: 380px;
+            height: 500px;
+            background: rgba(15, 15, 15, 0.9);
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform-style: preserve-3d;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+            overflow: hidden; /* Clips the rotating lines */
+            transition: transform 0.15s ease-out;
+            animation: breathe 5s ease-in-out infinite;
+        }
+
+        /* Rotating Corner Lines (The Neon Border) */
+        .card::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            background: conic-gradient(transparent, transparent, transparent, #ffd700);
+            animation: rotateLine 4s linear infinite;
+        }
+
+        /* Inner card to hide the center of the rotating gradient */
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: 4px; /* Thickness of the border */
+            background: #0f0f0f;
+            border-radius: 26px;
+            z-index: 0;
+        }
+
+        /* Centered Content Styling */
+        .content {
+            position: relative;
+            z-index: 2; /* Sits above the inner background */
+            text-align: center;
+            transform-style: preserve-3d;
+        }
+
+        .year {
+            font-size: 8rem; /* Original Size */
+            font-family: 'Arial Black', sans-serif;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transform: translateZ(100px);
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5));
+            line-height: 1;
+        }
+
+        .text {
+            font-size: 1.5rem; /* Original Size */
+            font-family: 'Arial Black', sans-serif;
+            color: #ffd700;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            transform: translateZ(50px);
+            margin: 10px 0 0 0;
+            text-align: center;
+        }
+
+        /* Animations */
+        @keyframes rotateLine {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 30px 60px rgba(255, 215, 0, 0.1); }
+            50% { box-shadow: 0 30px 80px rgba(255, 215, 0, 0.3); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="fw"></canvas>
+
+    <div class="card" id="card">
+        <div class="content">
+            <h1 class="year">2026</h1>
+            <p class="text">Happy New Year</p>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('fw');
+    const ctx = canvas.getContext('2d');
+    const card = document.getElementById('card');
+    let particles = [];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // 3D Tilt Logic
+    window.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.pageX) / 20;
+        const y = (window.innerHeight / 2 - e.pageY) / 20;
+        card.style.transform = `rotateX(${y}deg) rotateY(${-x}deg)`;
+    });
+
+    // Firework System
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.vel = { x: (Math.random() - 0.5) * 10, y: (Math.random() - 0.5) * 10 };
+            this.alpha = 1;
+        }
+        update() {
+            this.x += this.vel.x; this.y += this.vel.y;
+            this.vel.y += 0.1; // gravity
+            this.alpha -= 0.01;
+        }
+        draw() {
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function spawn(x, y) {
+        const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+        for(let i=0; i<60; i++) particles.push(new Particle(x, y, color));
+    }
+
+    function animate() {
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+            if(p.alpha > 0) { p.update(); p.draw(); }
+            else { particles.splice(i, 1); }
+        });
+        requestAnimationFrame(animate);
+    }
+
+    // Interactions
+    card.addEventListener('click', (e) => {
+        for(let i=0; i<8; i++) {
+            setTimeout(() => spawn(Math.random()*canvas.width, Math.random()*canvas.height), i*150);
+        }
+    });
+
+    setInterval(() => spawn(Math.random()*canvas.width, Math.random()*canvas.height*0.7), 1500);
+    animate();
 </script>
 </body>
 </html>
